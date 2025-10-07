@@ -1,0 +1,1950 @@
+{
+	"info": {
+		"_postman_id": "recipe-pantry-full-test",
+		"name": "Recipe Pantry API - Full Test & Cleanup",
+		"description": "Complete API test suite with pre-test cleanup that handles existing test data and cleans up all artifacts",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "0. Pre-Test Cleanup (Silent)",
+			"item": [
+				{
+					"name": "Attempt Login User 1 for Cleanup",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// This may fail if user doesn't exist - that's OK",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('cleanupToken1', response.access_token);",
+									"    console.log('Found existing user 1 - will clean up');",
+									"} else {",
+									"    pm.collectionVariables.set('cleanupToken1', '');",
+									"    console.log('User 1 does not exist - no cleanup needed');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Skip test assertions for cleanup",
+									"pm.test.skip('Cleanup step - no assertions needed', function() {});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{testEmail1}}\",\n    \"password\": \"{{testPassword}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Delete Existing User 1",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Only run if we have a cleanup token",
+									"if (!pm.collectionVariables.get('cleanupToken1')) {",
+									"    pm.request.headers.add({",
+									"        key: 'X-Skip-Request',",
+									"        value: 'true'",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get('cleanupToken1')) {",
+									"    console.log('Cleaned up existing user 1');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{cleanupToken1}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["me"]
+						}
+					}
+				},
+				{
+					"name": "Attempt Login User 2 for Cleanup",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('cleanupToken2', response.access_token);",
+									"    console.log('Found existing user 2 - will clean up');",
+									"} else {",
+									"    pm.collectionVariables.set('cleanupToken2', '');",
+									"    console.log('User 2 does not exist - no cleanup needed');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{testEmail2}}\",\n    \"password\": \"{{testPassword}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Delete Existing User 2",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"if (!pm.collectionVariables.get('cleanupToken2')) {",
+									"    pm.request.headers.add({",
+									"        key: 'X-Skip-Request',",
+									"        value: 'true'",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get('cleanupToken2')) {",
+									"    console.log('Cleaned up existing user 2');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{cleanupToken2}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["me"]
+						}
+					}
+				},
+				{
+					"name": "Manual Admin Cleanup Notice",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log('⚠️  REMINDER: If admin user exists from previous run, manually delete:');",
+									"console.log('psql -U your_db_user -d your_db_name');",
+									"console.log(\"DELETE FROM users WHERE email = 'postman_admin@test.com';\");",
+									"pm.test.skip('Admin cleanup is manual', function() {});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["health"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "1. System Health Checks",
+			"item": [
+				{
+					"name": "Check API Root",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has correct structure\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('message');",
+									"    pm.expect(response).to.have.property('version');",
+									"    pm.expect(response.version).to.equal('0.3.0');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/",
+							"host": ["{{baseUrl}}"],
+							"path": [""]
+						}
+					}
+				},
+				{
+					"name": "Health Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Database is connected\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.status).to.equal('healthy');",
+									"    pm.expect(response.database).to.equal('connected');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["health"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. User Registration & Auth",
+			"item": [
+				{
+					"name": "Register Test User 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"User created successfully\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"User data is correct\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.email).to.equal(pm.collectionVariables.get('testEmail1'));",
+									"    pm.expect(response.username).to.equal(pm.collectionVariables.get('testUsername1'));",
+									"    pm.expect(response.role).to.equal('user');",
+									"    pm.collectionVariables.set('testUserId1', response.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{testEmail1}}\",\n    \"username\": \"{{testUsername1}}\",\n    \"password\": \"{{testPassword}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/signup",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "signup"]
+						}
+					}
+				},
+				{
+					"name": "Register Test User 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"User created successfully\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"User data is correct\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.email).to.equal(pm.collectionVariables.get('testEmail2'));",
+									"    pm.expect(response.username).to.equal(pm.collectionVariables.get('testUsername2'));",
+									"    pm.collectionVariables.set('testUserId2', response.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{testEmail2}}\",\n    \"username\": \"{{testUsername2}}\",\n    \"password\": \"{{testPassword}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/signup",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "signup"]
+						}
+					}
+				},
+				{
+					"name": "Register Admin User (May Fail if Exists)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    pm.test(\"Admin created successfully\", function () {",
+									"        pm.response.to.have.status(201);",
+									"    });",
+									"    ",
+									"    pm.test(\"User is admin\", function () {",
+									"        const response = pm.response.json();",
+									"        pm.expect(response.role).to.equal('admin');",
+									"        pm.collectionVariables.set('testAdminId', response.id);",
+									"    });",
+									"} else if (pm.response.code === 409) {",
+									"    console.log('Admin already exists from previous run - continuing');",
+									"    pm.test.skip('Admin already exists - skipping', function() {});",
+									"} else {",
+									"    pm.test(\"Unexpected error\", function () {",
+									"        pm.response.to.have.status(201);",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{testAdminEmail}}\",\n    \"username\": \"{{testAdminUsername}}\",\n    \"password\": \"{{testPassword}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/signup-admin?admin_secret={{adminSecret}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "signup-admin"],
+							"query": [
+								{
+									"key": "admin_secret",
+									"value": "{{adminSecret}}"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Login User 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Login successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Token received\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('access_token');",
+									"    pm.expect(response.token_type).to.equal('bearer');",
+									"    pm.collectionVariables.set('userToken1', response.access_token);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{testEmail1}}\",\n    \"password\": \"{{testPassword}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Login User 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Login successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Token received\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('userToken2', response.access_token);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{testEmail2}}\",\n    \"password\": \"{{testPassword}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Login Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Admin login successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Token received\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('adminToken', response.access_token);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{testAdminEmail}}\",\n    \"password\": \"{{testPassword}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. User Profile Management",
+			"item": [
+				{
+					"name": "Get Current User Profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get profile successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Profile data correct\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.email).to.equal(pm.collectionVariables.get('testEmail1'));",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken1}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["me"]
+						}
+					}
+				},
+				{
+					"name": "Update Current User Profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Update successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Username updated\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.username).to.equal('postman_updated_user1');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken1}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"postman_updated_user1\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["me"]
+						}
+					}
+				},
+				{
+					"name": "Revert Username Update",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Revert successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Username reverted\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.username).to.equal(pm.collectionVariables.get('testUsername1'));",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken1}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"{{testUsername1}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["me"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Recipe Management",
+			"item": [
+				{
+					"name": "Create Private Recipe - User 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    pm.test(\"Recipe created\", function () {",
+									"        pm.response.to.have.status(201);",
+									"    });",
+									"    ",
+									"    pm.test(\"Recipe data correct\", function () {",
+									"        const response = pm.response.json();",
+									"        pm.expect(response.title).to.equal('Postman Test Pasta');",
+									"        pm.expect(response.is_public).to.equal(false);",
+									"        pm.collectionVariables.set('recipeId1', response.id);",
+									"    });",
+									"} else if (pm.response.code === 409) {",
+									"    console.log('Recipe already exists - will use existing');",
+									"    // Try to get the existing recipe ID from user's recipes",
+									"    pm.test.skip('Recipe already exists', function() {});",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken1}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Postman Test Pasta\",\n    \"ingredients_json\": [\"pasta\", \"tomato sauce\", \"cheese\", \"basil\"],\n    \"instructions\": \"1. Boil pasta\\n2. Add sauce\\n3. Top with cheese\",\n    \"prep_minutes\": 20,\n    \"is_public\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/me/recipes",
+							"host": ["{{baseUrl}}"],
+							"path": ["me", "recipes"]
+						}
+					}
+				},
+				{
+					"name": "Create Public Recipe - User 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    pm.test(\"Recipe created\", function () {",
+									"        pm.response.to.have.status(201);",
+									"    });",
+									"    ",
+									"    pm.test(\"Recipe is public\", function () {",
+									"        const response = pm.response.json();",
+									"        pm.expect(response.is_public).to.equal(true);",
+									"        pm.collectionVariables.set('recipeId2', response.id);",
+									"    });",
+									"} else if (pm.response.code === 409) {",
+									"    console.log('Recipe already exists - will use existing');",
+									"    pm.test.skip('Recipe already exists', function() {});",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken1}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Postman Public Salad\",\n    \"ingredients_json\": [\"lettuce\", \"tomato\", \"cucumber\", \"olive oil\"],\n    \"instructions\": \"Mix all ingredients\",\n    \"prep_minutes\": 10,\n    \"is_public\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/me/recipes",
+							"host": ["{{baseUrl}}"],
+							"path": ["me", "recipes"]
+						}
+					}
+				},
+				{
+					"name": "Create Recipe - User 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    pm.test(\"Recipe created\", function () {",
+									"        pm.response.to.have.status(201);",
+									"    });",
+									"    ",
+									"    pm.test(\"Recipe saved\", function () {",
+									"        const response = pm.response.json();",
+									"        pm.collectionVariables.set('recipeId3', response.id);",
+									"    });",
+									"} else if (pm.response.code === 409) {",
+									"    console.log('Recipe already exists - will use existing');",
+									"    pm.test.skip('Recipe already exists', function() {});",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken2}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"User2 Test Recipe\",\n    \"ingredients_json\": [\"bread\", \"butter\", \"jam\"],\n    \"instructions\": \"Spread butter and jam on bread\",\n    \"prep_minutes\": 5,\n    \"is_public\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/me/recipes",
+							"host": ["{{baseUrl}}"],
+							"path": ["me", "recipes"]
+						}
+					}
+				},
+				{
+					"name": "Get My Recipes and Store IDs",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get recipes successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Has recipes\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.be.an('array');",
+									"    pm.expect(response.length).to.be.greaterThan(0);",
+									"    ",
+									"    // Store recipe IDs for cleanup",
+									"    if (response.length > 0) {",
+									"        response.forEach((recipe, index) => {",
+									"            if (recipe.title === 'Postman Test Pasta') {",
+									"                pm.collectionVariables.set('recipeId1', recipe.id);",
+									"            } else if (recipe.title === 'Postman Public Salad') {",
+									"                pm.collectionVariables.set('recipeId2', recipe.id);",
+									"            }",
+									"        });",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken1}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/me/recipes",
+							"host": ["{{baseUrl}}"],
+							"path": ["me", "recipes"]
+						}
+					}
+				},
+				{
+					"name": "Update Recipe (if exists)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Only run if we have a recipe ID",
+									"if (!pm.collectionVariables.get('recipeId1')) {",
+									"    console.log('No recipe ID - skipping update');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get('recipeId1')) {",
+									"    if (pm.response.code === 200) {",
+									"        pm.test(\"Update successful\", function () {",
+									"            pm.response.to.have.status(200);",
+									"        });",
+									"        ",
+									"        pm.test(\"Prep time updated\", function () {",
+									"            const response = pm.response.json();",
+									"            pm.expect(response.prep_minutes).to.equal(25);",
+									"        });",
+									"    } else if (pm.response.code === 404) {",
+									"        console.log('Recipe not found - may have been deleted in previous run');",
+									"        pm.test.skip('Recipe not found', function() {});",
+									"    }",
+									"} else {",
+									"    pm.test.skip('No recipe to update', function() {});",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken1}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"prep_minutes\": 25\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/me/recipes/{{recipeId1}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["me", "recipes", "{{recipeId1}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Pantry Management",
+			"item": [
+				{
+					"name": "Get Empty Pantry",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get pantry successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Pantry is empty\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.ingredients_json).to.be.an('array');",
+									"    pm.expect(response.ingredients_json).to.have.lengthOf(0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken1}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/me/pantry",
+							"host": ["{{baseUrl}}"],
+							"path": ["me", "pantry"]
+						}
+					}
+				},
+				{
+					"name": "Update Pantry",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Update successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Ingredients added\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.ingredients_json).to.include.members(['pasta', 'cheese', 'tomato sauce']);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken1}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ingredients_json\": [\"pasta\", \"tomato sauce\", \"cheese\", \"olive oil\", \"lettuce\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/me/pantry",
+							"host": ["{{baseUrl}}"],
+							"path": ["me", "pantry"]
+						}
+					}
+				},
+				{
+					"name": "Get Available Recipes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Get matches successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Has matching recipes\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.recipes).to.be.an('array');",
+									"    pm.expect(response.recipes.length).to.be.greaterThan(0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken1}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/me/recipes/available?threshold=0.5",
+							"host": ["{{baseUrl}}"],
+							"path": ["me", "recipes", "available"],
+							"query": [
+								{
+									"key": "threshold",
+									"value": "0.5"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Clear Pantry",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Clear successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Pantry empty\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.ingredients_json).to.have.lengthOf(0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken1}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ingredients_json\": []\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/me/pantry",
+							"host": ["{{baseUrl}}"],
+							"path": ["me", "pantry"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "6. Admin Operations",
+			"item": [
+				{
+					"name": "Admin - Get All Users",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Admin access successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Returns user list\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": ["{{baseUrl}}"],
+							"path": ["users"]
+						}
+					}
+				},
+				{
+					"name": "Admin - Get All Recipes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Admin can see all recipes\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Returns recipe list\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/recipes",
+							"host": ["{{baseUrl}}"],
+							"path": ["recipes"]
+						}
+					}
+				},
+				{
+					"name": "Admin - View Database Tables",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Can view tables\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Shows table list\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.tables).to.include.members(['users', 'recipes', 'user_pantry']);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/db/tables",
+							"host": ["{{baseUrl}}"],
+							"path": ["db", "tables"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "7. Error Handling Tests",
+			"item": [
+				{
+					"name": "Duplicate Email Registration",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Duplicate email rejected\", function () {",
+									"    pm.response.to.have.status(409);",
+									"});",
+									"",
+									"pm.test(\"Error message correct\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.detail).to.include('already registered');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{testEmail1}}\",\n    \"username\": \"different_username\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/signup",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "signup"]
+						}
+					}
+				},
+				{
+					"name": "Invalid Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Invalid login rejected\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"Error message correct\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.detail).to.include('Incorrect email or password');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{testEmail1}}\",\n    \"password\": \"wrongpassword\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Unauthorized Access",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Unauthorized rejected\", function () {",
+									"    pm.response.to.have.status(403);",
+									"});",
+									"",
+									"pm.test(\"Error message correct\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.detail).to.include('Admin access required');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken1}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/users",
+							"host": ["{{baseUrl}}"],
+							"path": ["users"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "8. CLEANUP - Remove All Test Data",
+			"item": [
+				{
+					"name": "Get User 2 Recipes for Cleanup",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.length > 0) {",
+									"        response.forEach((recipe) => {",
+									"            if (recipe.title === 'User2 Test Recipe') {",
+									"                pm.collectionVariables.set('recipeId3', recipe.id);",
+									"            }",
+									"        });",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken2}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/me/recipes",
+							"host": ["{{baseUrl}}"],
+							"path": ["me", "recipes"]
+						}
+					}
+				},
+				{
+					"name": "Delete Recipe 1 (if exists)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"if (!pm.collectionVariables.get('recipeId1')) {",
+									"    console.log('No recipe 1 to delete');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get('recipeId1')) {",
+									"    if (pm.response.code === 204 || pm.response.code === 200) {",
+									"        pm.test(\"Recipe 1 deleted\", function () {",
+									"            pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+									"        });",
+									"    } else if (pm.response.code === 404) {",
+									"        console.log('Recipe 1 already deleted');",
+									"        pm.test.skip('Recipe already deleted', function() {});",
+									"    }",
+									"} else {",
+									"    pm.test.skip('No recipe to delete', function() {});",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken1}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/me/recipes/{{recipeId1}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["me", "recipes", "{{recipeId1}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Recipe 2 (if exists)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"if (!pm.collectionVariables.get('recipeId2')) {",
+									"    console.log('No recipe 2 to delete');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get('recipeId2')) {",
+									"    if (pm.response.code === 204 || pm.response.code === 200) {",
+									"        pm.test(\"Recipe 2 deleted\", function () {",
+									"            pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+									"        });",
+									"    } else if (pm.response.code === 404) {",
+									"        console.log('Recipe 2 already deleted');",
+									"        pm.test.skip('Recipe already deleted', function() {});",
+									"    }",
+									"} else {",
+									"    pm.test.skip('No recipe to delete', function() {});",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken1}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/me/recipes/{{recipeId2}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["me", "recipes", "{{recipeId2}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Recipe 3 (if exists)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"if (!pm.collectionVariables.get('recipeId3')) {",
+									"    console.log('No recipe 3 to delete');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get('recipeId3')) {",
+									"    if (pm.response.code === 204 || pm.response.code === 200) {",
+									"        pm.test(\"Recipe 3 deleted\", function () {",
+									"            pm.expect(pm.response.code).to.be.oneOf([200, 204]);",
+									"        });",
+									"    } else if (pm.response.code === 404) {",
+									"        console.log('Recipe 3 already deleted');",
+									"        pm.test.skip('Recipe already deleted', function() {});",
+									"    }",
+									"} else {",
+									"    pm.test.skip('No recipe to delete', function() {});",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken2}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/me/recipes/{{recipeId3}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["me", "recipes", "{{recipeId3}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Test User 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"User 1 deleted\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken1}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["me"]
+						}
+					}
+				},
+				{
+					"name": "Delete Test User 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"User 2 deleted\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken2}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["me"]
+						}
+					}
+				},
+				{
+					"name": "Admin Delete Test Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Admin cannot self-delete\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Correct error message\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.detail).to.include('cannot be self-deleted');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["me"]
+						}
+					}
+				},
+				{
+					"name": "Create Admin Cleanup SQL Script",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Generate SQL cleanup script",
+									"const adminEmail = pm.collectionVariables.get('testAdminEmail');",
+									"const sqlScript = `-- SQL script to clean up test admin user",
+									"DELETE FROM users WHERE email = '${adminEmail}';`;",
+									"",
+									"console.log('⚠️  ADMIN CLEANUP REQUIRED');",
+									"console.log('Save and run this SQL:');",
+									"console.log(sqlScript);",
+									"",
+									"// Also output to test results",
+									"pm.test('Admin cleanup SQL generated', function() {",
+									"    pm.expect(adminEmail).to.exist;",
+									"});",
+									"",
+									"console.log('Or run: psql -U your_user -d your_db -c \"DELETE FROM users WHERE email = \\'postman_admin@test.com\\';\"');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["health"]
+						}
+					}
+				},
+				{
+					"name": "Verify Cleanup Complete",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"API still healthy after cleanup\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"console.log('✅ Test suite complete!');",
+									"console.log('⚠️  Remember to manually delete admin user from database');",
+									"console.log('Run: DELETE FROM users WHERE email = \\'postman_admin@test.com\\';');"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["health"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Initialize cleanup variables if not set",
+					"if (!pm.collectionVariables.has('cleanupToken1')) {",
+					"    pm.collectionVariables.set('cleanupToken1', '');",
+					"}",
+					"if (!pm.collectionVariables.has('cleanupToken2')) {",
+					"    pm.collectionVariables.set('cleanupToken2', '');",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "testEmail1",
+			"value": "postman_test_user1@test.com",
+			"type": "string"
+		},
+		{
+			"key": "testUsername1",
+			"value": "postman_test_user1",
+			"type": "string"
+		},
+		{
+			"key": "testEmail2",
+			"value": "postman_test_user2@test.com",
+			"type": "string"
+		},
+		{
+			"key": "testUsername2",
+			"value": "postman_test_user2",
+			"type": "string"
+		},
+		{
+			"key": "testAdminEmail",
+			"value": "postman_admin@test.com",
+			"type": "string"
+		},
+		{
+			"key": "testAdminUsername",
+			"value": "postman_admin",
+			"type": "string"
+		},
+		{
+			"key": "testPassword",
+			"value": "test_password_123",
+			"type": "string"
+		},
+		{
+			"key": "adminSecret",
+			"value": "bootcamp_secret_2025",
+			"type": "string"
+		},
+		{
+			"key": "userToken1",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userToken2",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "adminToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "testUserId1",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "testUserId2",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "testAdminId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "recipeId1",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "recipeId2",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "recipeId3",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "cleanupToken1",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "cleanupToken2",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

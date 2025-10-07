@@ -1,0 +1,13 @@
+# .sqlfluff - Final configuration after real-world testing
+[sqlfluff]
+dialect = postgres
+max_line_length = 120
+large_file_skip_byte_limit = 60000
+
+[sqlfluff:rules:capitalisation.keywords]
+# Changed from 'lower' to 'consistent' after seeing pg_dump uses UPPER
+capitalisation_policy = consistent
+
+[sqlfluff:rules]
+# Exclude specific rules for auto-generated template files
+exclude_rules = L011,L012,L014,L016

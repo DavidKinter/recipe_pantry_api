@@ -1,0 +1,17 @@
+# Development and testing dependencies
+-c requirements.txt  # Constrain versions to match production
+
+# Testing
+pytest>=8.0.0
+pytest-cov
+pytest-asyncio
+
+# Code quality
+mypy>=1.0.0
+ruff>=0.1.0
+bandit[toml]>=1.7.0
+detect-secrets>=1.4.0
+
+# Type stubs
+types-requests
+sqlalchemy[mypy]

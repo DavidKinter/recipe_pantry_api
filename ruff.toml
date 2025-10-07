@@ -1,0 +1,29 @@
+# Ruff configuration for FastAPI + SQLAlchemy project
+# Configured for bootcamp MVP - prioritizes functionality over style perfection
+
+line-length = 120  # Increased from 88 - FastAPI decorators need this
+
+[lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "B",    # flake8-bugbear
+    "S",    # flake8-bandit security
+    "I",    # isort
+]
+
+ignore = [
+    "B008",  # Do not perform function calls in argument defaults - This is FastAPI's Depends() pattern!
+    "E501",  # Line too long - FastAPI decorators and error messages need length
+    "E712",  # Comparison to True - SQLAlchemy filters require == True
+    "S105",  # Possible hardcoded password - False positive on token_type = "bearer"
+]
+
+[lint.per-file-ignores]
+"src/main.py" = [
+    "B904",  # Exception chaining - 24 instances, nice to have but not critical for MVP
+]
+"src/tests/*" = [
+    "S101",  # Use of assert - OK in tests
+]
