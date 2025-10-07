@@ -551,7 +551,7 @@ def get_visible_recipes(
             .filter(
                 db_or(
                     models.Recipe.user_id == current_user.id,
-                    models.Recipe.is_public is True,
+                    models.Recipe.is_public == True,
                 ),
             )
             .offset(skip)
@@ -562,7 +562,7 @@ def get_visible_recipes(
     return (
         db.query(models.Recipe)
         .filter(
-            models.Recipe.is_public is True,
+            models.Recipe.is_public == True,
         )
         .offset(skip)
         .limit(limit)
