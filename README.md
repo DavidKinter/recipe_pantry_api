@@ -1,24 +1,32 @@
 # Recipe Pantry API
 
-Week 3 Submission - Masterschool Bootcamp
+MVP - Masterschool Bootcamp
 
 ## Project Status
 
-This is my Week 3 checkpoint submission. Core API is complete and tested, deployment next week.
+The API is working locally with all endpoints tested. Need to deploy it to Render next.
 
 ### What's Working
 - FastAPI with 20+ endpoints
-- PostgreSQL database (3 tables, proper relationships)
-- JWT auth with bcrypt
+- PostgreSQL database (5 tables: users, recipes, ingredients, recipe_ingredients, user_pantry)
+- 2080 professionally curated ingredients (FDA compliant, culturally sensitive)
+- JWT auth with bcrypt password hashing
 - Full CRUD for users, recipes, pantry
-- Recipe matching algorithm
-- 50 Postman tests
+- Recipe matching algorithm with synonym support
+- 156 test assertions across 127 requests with automated cleanup
 - Admin role system
 
-### Still TODO
-- Deploy to Render
-- Split main.py (1449 lines is too much)
-- Add refresh tokens if time
+### Database Highlights
+- Normalized 5-table structure with junction tables
+- Unique ingredient names (no duplicates)
+- Cultural sensitivity (proper diacriticals, offensive terms removed)
+- Ingredient names follow FDA dairy product definitions (heavy cream vs light cream)
+- Botanical accuracy prevents recipe errors (sweet potatoes ≠ yams)
+- Denormalized fields for developer experience (debugging-friendly)
+
+### Still need to do
+- Deploy to Render (haven't done this yet)
+- Add the URL here when it's live
 
 ## Quick Start
 
@@ -59,18 +67,36 @@ Admin features:
 
 ## Database Schema
 
-3 tables with CASCADE deletes:
+5-table normalized structure with CASCADE deletes:
 
 **users**
 - id, email (unique), username (unique), role (admin/user)
 - password_hash, created_at, updated_at
 
+**ingredients** (2080 pre-populated)
+- id, name (unique), synonyms (JSONB array)
+- Culturally sensitive, FDA compliant, botanically accurate
+
 **recipes**
-- id, user_id (FK), title, ingredients_json, instructions
-- prep_minutes, is_public, timestamps
+- id, user_id (FK), title (unique per user), ingredients_json (JSONB)
+- instructions, prep_minutes, is_public, timestamps
+
+**recipe_ingredients** (junction table)
+- id, recipe_id (FK), ingredient_id (FK)
+- recipe_name, ingredient_name (denormalized for debugging)
+- Unique constraint on (recipe_id, ingredient_id)
 
 **user_pantry**
-- id, user_id (FK), ingredient, quantity, unit, timestamps
+- id, user_id (FK), ingredient_id (FK)
+- ingredient_name (denormalized for debugging)
+- Unique constraint on (user_id, ingredient_id)
+- created_at timestamp
+
+**Design Decisions:**
+- Junction table enables proper many-to-many relationships
+- Denormalized name fields improve debugging (can read tables without JOINs)
+- JSONB for flexible ingredient storage and synonym matching
+- B-tree indexes only (bootcamp-appropriate, no advanced GIN/FTS)
 
 Load sample data: `psql $DATABASE_URL -f templates/recipe_pantry_api_dev.sql`
 
@@ -83,68 +109,129 @@ Auth (`/auth/*`):
 
 User (`/me/*`):
 - GET/PUT/DELETE /me - profile management
+- POST /me/recipes - create recipe (validates all ingredients exist)
 - GET /me/recipes - user's recipes
-- GET /me/pantry - user's ingredients
-- PUT /me/pantry - update pantry
-- GET /me/recipes/available - matching based on pantry
+- PUT/DELETE /me/recipes/{id} - update/delete recipe
+- GET /me/pantry - user's pantry (array format)
+- POST /me/pantry/ingredients - add ingredient to pantry
+- DELETE /me/pantry/ingredients/{id} - remove ingredient
+- PUT /me/pantry - replace entire pantry
+- GET /me/recipes/available - recipe matching with synonym support
 
 Admin (`/users/*`, `/recipes/*`):
 - GET /users - all users
 - GET/PUT/DELETE /users/{id} - user management
 - GET /recipes - all recipes (with filters)
+- GET/PUT/DELETE /recipes/{id} - recipe management
 
 System:
-- GET / - welcome
-- GET /health - status check
+- GET / - welcome message
+- GET /health - health check
+- GET /ingredients - reference list of all 2080 ingredients (fallback for validation errors)
 
 ## Testing
 
 Run full test suite:
-1. Import `tests/Recipe_Pantry_API_Full_Test.postman_collection.json` in Postman
+1. Import `tests/postman_test_collection.json` in Postman
 2. Run collection (creates/deletes test data automatically)
 3. Clean admin user: `psql $DATABASE_URL -f tests/postman_cleanup_admin.sql`
 
-50 tests covering all endpoints, edge cases, auth flows.
+156 assertions across 127 requests covering all endpoints, edge cases, auth flows.
 
 ## Code Quality
 
 Linted with ruff and sqlfluff (see docs/LINTING.md for details).
 
-Known issue: main.py is 1449 lines. Should split into modules but everything works and is tested so leaving for now.
+Architecture: Refactored from monolithic main.py into modular structure with routers and helpers for better maintainability.
 
 ## Recipe Matching Logic
 
-The `/me/recipes/available` endpoint calculates match percentage:
-- Compares recipe ingredients with user pantry
-- Returns recipes where you have X% of ingredients
-- Default threshold: 50% (configurable via query param)
+The `/me/recipes/available` endpoint works like this:
+1. Gets what's in your pantry and any synonyms
+2. Checks all your ingredients (so "milk" also matches "whole milk")
+3. Looks at what each recipe needs
+4. Figures out what percentage of ingredients you have
+5. Shows recipes where you have enough ingredients (default 50%)
 
-Example: Recipe needs [eggs, milk, flour]. You have [eggs, milk]. Match = 66%.
+**Synonym Support Example:**
+- User has "milk" in pantry
+- Recipe needs "whole milk"
+- Match successful! (synonyms: ["whole milk", "2% milk", "skim milk"])
 
-## Week 3 Requirements Checklist
+**Why Botanical Accuracy Matters:**
+- Sweet potatoes ≠ yams (different species, different cooking properties)
+- User with "sweet potatoes" in pantry gets sweet potato recipes
+- User with "yams" in pantry gets yam recipes
+- Prevents matching recipes that won't work with what's actually in the kitchen
 
-- [x] FastAPI framework - full implementation
-- [x] Project documented - recipe pantry with matching
-- [x] Database schema - 3 tables with relationships
-- [x] Local server - localhost:8000
+**Match Calculation:**
+Recipe needs [eggs, milk, flour]. You have [eggs, milk]. Match = 66% (2 of 3 ingredients).
+
+## Ingredient Validation System
+
+**Why I compiled 2080 ingredients with synonyms:**
+
+I wanted users to just type normal ingredient names without having to check a list first. With 2080 ingredients and all their synonyms in the database, pretty much any normal ingredient name will work:
+
+**Most of the time it just works:**
+```
+POST /me/recipes with {"ingredients_json": ["eggs", "milk", "butter"]}
+→ Recipe created (all ingredients found)
+```
+
+**If you use something that doesn't exist:**
+```
+POST /me/recipes with {"ingredients_json": ["eggs", "weird-spice-xyz"]}
+→ Error: "Unknown ingredients: weird-spice-xyz. Use GET /ingredients to see all 2080 valid options."
+```
+
+**How it works:**
+- The 2080 ingredients I added cover most cooking ingredients
+- Synonyms mean "whole milk" works when the user types "milk"
+- GET /ingredients shows them all alphabetically if you need to look one up
+- But usually you won't need to because common ingredients are already there
+
+## Requirements Checklist
+
+- [x] FastAPI framework - full implementation with 20+ endpoints
+- [x] Project documented - comprehensive README
+- [x] Database schema - 5 normalized tables with relationships
+- [x] Local server - localhost:8000 with auto-reload
 - [x] PostgreSQL - recipe_pantry_api_dev database
 - [x] GitHub repo - with .gitignore
 - [x] .ENV file - all secrets configured
-- [x] Server-DB connection - SQLAlchemy ORM
-- [x] CRUD operations - all entities covered
-- [x] JWT auth - 30-day tokens
-- [x] /me endpoint - full user management
+- [x] Server-DB connection - SQLAlchemy ORM with models
+- [x] CRUD operations - users, recipes, pantry all covered
+- [x] JWT auth - bcrypt passwords, 30-day tokens
+- [x] /me endpoint - complete user management
+- [x] Postman tests - 156 assertions across 127 requests with cleanup
 - [x] Password encryption - bcrypt hashing
 - [x] Unique emails - enforced in DB and code
-- [x] API testing - 50 Postman tests
+- [x] API testing - 156 assertions across 127 requests
 - [x] Swagger docs - auto-generated
 - [x] POC ready - fully functional
 
-## Next Week
+## How to Deploy (for Render)
 
-1. Deploy to Render
-2. Refactor main.py into modules
-3. Add any missing features from feedback
+Haven't deployed yet but here's what I need to do:
 
----
-*Week 3 milestone ready for review*
+1. Create database on Render first
+2. Connect this GitHub repo to Render
+3. Copy all the environment variables from .env
+4. Test if it works with /health endpoint
+
+Environment variables needed:
+- DATABASE_URL (from the Render database)
+- JWT_SECRET_KEY and SECRET_KEY (need to generate new ones)
+- ADMIN_SECRET (for creating admin users)
+- CORS_ORIGINS (just keeping the default)
+
+## Testing
+
+Postman tests all pass on localhost. Tested:
+- User signup/login
+- Creating and updating recipes
+- Adding ingredients to pantry
+- Recipe matching (finds recipes based on what's in your pantry)
+- Admin endpoints
+- Deleting users deletes their recipes too

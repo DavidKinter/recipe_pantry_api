@@ -1,29 +1,295 @@
-# Ruff configuration for FastAPI + SQLAlchemy project
-# Configured for bootcamp MVP - prioritizes functionality over style perfection
+# ===== INDUSTRY STANDARD RUFF CONFIGURATION =====
+# Comprehensive linting + formatting config
+# Matches PyCharm's native formatting + catches all auto-fixable errors
+# Based on: Google Python Style Guide, Black, Pylint, and PEP 8
 
-line-length = 120  # Increased from 88 - FastAPI decorators need this
+# Python version target
+target-version = "py312"
 
+# PEP 8 strict: 79 characters (matches PyCharm "Project copy4")
+line-length = 79
+
+# ===== FORMATTING =====
+[format]
+# Use latest formatting improvements
+preview = true
+
+# Black-style formatting (matches PyCharm)
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+docstring-code-format = true
+docstring-code-line-length = 79
+
+# ===== COMPREHENSIVE LINTING =====
 [lint]
+# Enable EVERYTHING except documentation and type annotations (those are opt-in)
 select = [
-    "E",    # pycodestyle errors
-    "W",    # pycodestyle warnings
-    "F",    # pyflakes
-    "B",    # flake8-bugbear
-    "S",    # flake8-bandit security
-    "I",    # isort
+    # === Core Quality (Always Enable) ===
+    "F",      # Pyflakes - undefined names, unused imports, syntax errors
+    "E",      # pycodestyle errors - PEP 8 violations
+    "W",      # pycodestyle warnings - PEP 8 style issues
+    "I",      # isort - import sorting and organization
+
+    # === Code Quality (Pylint-equivalent) ===
+    "PL",     # Pylint - comprehensive logic checks, refactoring suggestions
+    "RUF",    # Ruff-specific - modern Python best practices
+
+    # === Bug Prevention ===
+    "B",      # flake8-bugbear - common bugs and design problems
+    "A",      # flake8-builtins - shadowing Python builtins
+    # "COM",  # flake8-commas - conflicts with formatter, use formatter's trailing commas instead
+    "C4",     # flake8-comprehensions - optimize comprehensions
+    "DTZ",    # flake8-datetimez - timezone-aware datetime usage
+    "T10",    # flake8-debugger - no debugger statements in production
+    "EXE",    # flake8-executable - shebang presence/format
+    "ISC",    # flake8-implicit-str-concat - implicit string concatenation
+    "ICN",    # flake8-import-conventions - standard import naming
+    "G",      # flake8-logging-format - logging best practices
+    "PIE",    # flake8-pie - miscellaneous lints
+    "T20",    # flake8-print - no print() in production (use logging)
+    "PYI",    # flake8-pyi - type stub file best practices
+    "PT",     # flake8-pytest-style - pytest best practices
+    "Q",      # flake8-quotes - quote consistency
+    "RSE",    # flake8-raise - exception raising best practices
+    "RET",    # flake8-return - return statement improvements
+    "SLF",    # flake8-self - private member access
+    "SLOT",   # flake8-slots - __slots__ usage
+    "SIM",    # flake8-simplify - code simplification suggestions
+    "TID",    # flake8-tidy-imports - import structure
+    "TCH",    # flake8-type-checking - TYPE_CHECKING imports
+    "INT",    # flake8-gettext - internationalization
+    "ARG",    # flake8-unused-arguments - unused function arguments
+    "PTH",    # flake8-use-pathlib - prefer pathlib over os.path
+    "ERA",    # eradicate - no commented-out code
+    "PGH",    # pygrep-hooks - misc lints
+    "FLY",    # flynt - f-string conversion
+    "PERF",   # Perflint - performance anti-patterns
+    "FURB",   # refurb - modernization suggestions
+    "LOG",    # flake8-logging - logging improvement
+
+    # === Modern Python ===
+    "UP",     # pyupgrade - use modern Python syntax (PEP 585, 604, etc.)
+    "YTT",    # flake8-2020 - sys.version checks
+    "ASYNC",  # flake8-async - async/await best practices
+
+    # === Security ===
+    "S",      # flake8-bandit - security vulnerabilities
+
+    # === Type Hints (Light - full type checking needs mypy) ===
+    "FA",     # flake8-future-annotations - __future__ annotations
+
+    # === Additional Best Practices ===
+    "BLE",    # flake8-blind-except - avoid bare except
+    "FBT",    # flake8-boolean-trap - avoid boolean positional arguments
+    "DJ",     # flake8-django - Django best practices
+    "NPY",    # NumPy-specific rules
+    "AIR",    # Airflow-specific rules
 ]
 
+# Minimal ignores - only framework-required exceptions
 ignore = [
-    "B008",  # Do not perform function calls in argument defaults - This is FastAPI's Depends() pattern!
-    "E501",  # Line too long - FastAPI decorators and error messages need length
-    "E712",  # Comparison to True - SQLAlchemy filters require == True
-    "S105",  # Possible hardcoded password - False positive on token_type = "bearer"
+    # === FastAPI Framework Exceptions ===
+    "B008",     # Function calls in argument defaults (FastAPI Depends pattern)
+    "S104",     # Binding to all interfaces (FastAPI dev server)
+    "S101",     # Assert usage (fine in tests and FastAPI validation)
+
+    # === SQLAlchemy Framework Exceptions ===
+    "E712",     # Comparison to True (SQLAlchemy filters require == True)
+
+    # === Line Length (Handled by formatter) ===
+    "E501",     # Line too long (formatter handles this, don't error)
+
+    # === Security False Positives ===
+    "S105",     # Hardcoded password (false positive on token_type = "bearer")
+    "S106",     # Hardcoded password in function arg (false positive on password params)
+    "S107",     # Hardcoded password in default (false positive on defaults)
+
+    # === Naming Conventions (Match PyCharm inspections) ===
+    "N802",     # Function name lowercase (your PyCharm allows camelCase)
+    "N803",     # Argument name lowercase
+    "N806",     # Variable in function lowercase
+
+    # === Complexity Limits (Relaxed for bootcamp MVP) ===
+    "PLR0904",  # Too many public methods
+    "PLR0911",  # Too many return statements (FastAPI endpoints)
+    "PLR0912",  # Too many branches (complex validation logic)
+    "PLR0913",  # Too many arguments (FastAPI endpoints need many params)
+    "PLR0914",  # Too many local variables
+    "PLR0915",  # Too many statements (comprehensive error handling)
+    "PLR0917",  # Too many positional arguments
+    "PLR1702",  # Too many nested blocks
+    "PLR6301",  # Method could be function/static method
+
+    # === Import Style ===
+    "PLC0414",  # Import alias doesn't rename (OK: from sqlalchemy import or_ as db_or)
+
+    # === String Formatting (Prefer f-strings but allow %) ===
+    "UP031",    # Use f-strings (allow % formatting for legacy SQL)
+
+    # === Type Hints (Explicit typing module usage) ===
+    "UP006",    # Use built-in generics - DISABLED: explicitly use typing.List, Dict, etc.
+    "UP007",    # Use X | Y union syntax - DISABLED: explicitly use typing.Optional, Union
+    "UP035",    # Import from collections.abc - DISABLED: explicitly use typing module
+    "UP045",    # Replace Union with | - DISABLED: explicitly use typing.Union
+
+    # === Exception Handling (Minimal exceptions for FastAPI) ===
+    "EM101",    # Exception string literals (FastAPI uses inline messages)
+    "EM102",    # Exception f-string (FastAPI uses f-strings in errors)
+    "TRY003",   # Long exception messages (FastAPI has detailed errors)
+    "TRY400",   # Use logging.exception instead of logging.error (no logging yet)
+
+    # Enable strict exception handling:
+    # B904 - Exception chaining with 'raise ... from err' (NOW ENABLED)
+    # BLE001 - Do not catch blind exception: Exception (NOW ENABLED via BLE category)
+
+    # === Return Statements ===
+    "RET504",   # Unnecessary variable assignment before return (useful for debugging)
+
+    # === Print Statements (Allow in scripts) ===
+    "T201",     # print() found (will allow per-file for scripts)
+
+    # === Magic Values ===
+    "PLR2004",  # Magic value comparison (OK for HTTP status codes, test data)
+
+
+    # === Commented Code (Developer discretion) ===
+    "ERA001",   # Commented-out code (sometimes needed during development)
+
+    # === List Comprehensions (User Preference: Explicit For Loops) ===
+    "PERF401",  # Don't suggest converting for loops to list comprehensions
+    "PERF402",  # Don't suggest converting for loops to list/set/dict comprehensions
+
+    # === Boolean Traps ===
+    "FBT001",   # Boolean positional arg in function definition
+    "FBT002",   # Boolean default value in function definition
+
+    # === Framework-Specific (Not applicable) ===
+    "DJ",       # Django rules (not using Django)
+    "NPY",      # NumPy rules (not using NumPy)
+    "AIR",      # Airflow rules (not using Airflow)
 ]
 
+# === Per-File Exceptions ===
 [lint.per-file-ignores]
+# All source files - SQLAlchemy patterns
+"src/**/*.py" = [
+    "E712",     # SQLAlchemy boolean comparisons require == True (not 'is True')
+]
+
+# Main application
 "src/main.py" = [
-    "B904",  # Exception chaining - 24 instances, nice to have but not critical for MVP
+    "ARG001",   # Unused function argument (FastAPI dependencies)
+    "B904",     # Exception chaining - bootcamp MVP scope excludes this
 ]
-"src/tests/*" = [
-    "S101",  # Use of assert - OK in tests
+
+# Routers refactored from main.py (bootcamp MVP)
+"src/routers/*.py" = [
+    "ARG001",   # Unused function argument (FastAPI dependencies for auth/validation)
+    "B904",     # Exception chaining - inherited from main.py refactoring
 ]
+
+# Test files
+"src/tests/*.py" = [
+    "S101",     # Assert usage - required for testing
+    "PLR2004",  # Magic values - test data uses literals
+    "ARG001",   # Unused fixtures
+]
+"tests/*.py" = [
+    "S101",     # Assert usage
+    "PLR2004",  # Magic values
+    "ARG001",   # Unused fixtures
+]
+
+# Scripts and utilities
+"scripts/*.py" = [
+    "T201",     # Print statements - OK in CLI scripts
+    "S603",     # Subprocess without shell=True
+    "S607",     # Subprocess partial path
+]
+
+# Alembic migrations (auto-generated)
+"migrations/*.py" = [
+    "E501",     # Long lines in auto-generated code
+    "F401",     # Unused imports (Alembic needs these)
+]
+
+# Auxiliary documentation/analysis
+"aux_docs/*.py" = [
+    "T201",     # Print statements
+    "ERA001",   # Commented code
+]
+
+# Third-party integrations
+".zenbase/*.py" = [
+    "ALL",      # Ignore third-party code
+]
+
+# === Import Sorting (isort config) ===
+[lint.isort]
+# Combine imports from same module
+combine-as-imports = true
+force-sort-within-sections = true
+force-wrap-aliases = true
+
+# Known modules
+known-first-party = ["src"]
+
+# Section order
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+]
+
+# === Pylint Configuration ===
+[lint.pylint]
+max-args = 10           # FastAPI routes can have many parameters
+max-branches = 20       # Complex business logic
+max-returns = 10        # Multiple validation paths
+max-statements = 75     # Comprehensive error handling
+max-locals = 25         # Complex functions
+max-public-methods = 30 # API classes can have many endpoints
+
+# === Flake8-Builtins ===
+[lint.flake8-builtins]
+builtins-ignorelist = ["id", "input", "filter", "format"]  # Common in APIs
+
+# === Flake8-Quotes ===
+[lint.flake8-quotes]
+inline-quotes = "double"
+multiline-quotes = "double"
+
+# === flake8-pytest-style ===
+[lint.flake8-pytest-style]
+fixture-parentheses = false
+mark-parentheses = false
+
+# === flake8-tidy-imports ===
+[lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+# === McCabe Complexity ===
+[lint.mccabe]
+max-complexity = 15     # Reasonable complexity limit
+
+# === pydocstyle (Documentation - optional) ===
+[lint.pydocstyle]
+convention = "google"   # Google-style docstrings
+
+# ===== USAGE =====
+# Format code:               ruff format .
+# Check for issues:          ruff check .
+# Auto-fix issues:           ruff check --fix .
+# Check specific file:       ruff check src/main.py
+# Show rule documentation:   ruff rule E501
+#
+# PyCharm Integration:
+# - External Tool "Ruff Format + Fix" mapped to Cmd+Opt+L
+# - Runs: ruff format $FilePath$ && ruff check --fix $FilePath$
+#
+# CI/CD:
+# - Add to GitHub Actions: ruff check --output-format=github .
+# - Add to pre-commit: ruff check --fix . && ruff format .

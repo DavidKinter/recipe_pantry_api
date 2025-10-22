@@ -4,7 +4,7 @@ Authentication Utilities
 Provides password hashing functions using bcrypt for secure password storage.
 """
 
-from passlib.context import CryptContext
+from passlib.context import CryptContext  # type: ignore[import-untyped]
 
 # Create password context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

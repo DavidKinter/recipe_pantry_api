@@ -19,20 +19,20 @@ if not DATABASE_URL:
     raise ValueError("DATABASE_URL not found in .env file")
 
 engine = create_engine(DATABASE_URL, echo=False)  # echo=True shows SQL
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+SessionLocal = sessionmaker(
+    autocommit=False,  # Automatically commits changes to database
+    autoflush=False,  # Sends pending changes from memory to DB without commit
+    bind=engine,  # Connect all sessions to **this** DB
+)
+Base = declarative_base()  # Base class for all models (User, Recipe, etc.)
 
 
 def get_db():
     """
     Provides database session for each request.
     """
-    # Step 1: Create a new database session
-    db = SessionLocal()
-
+    db = SessionLocal()  # Step 1: Create a new database session
     try:
-        # Step 2: Give the session to the endpoint
-        yield db
+        yield db  # Step 2: Give the session to the endpoint
     finally:
-        # Step 3: Always close the session when done
-        db.close()
+        db.close()  # Step 3: Always close the session when done

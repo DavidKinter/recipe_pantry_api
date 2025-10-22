@@ -51,3 +51,15 @@ temp/
 build/
 dist/
 *.egg-info/
+
+# Python tool caches
+.mypy_cache/
+.ruff_cache/
+
+# Newman/Postman test results
+newman-results.json
+
+# Security - never commit these
+*_passwords.txt
+*_credentials.json
+*.secrets

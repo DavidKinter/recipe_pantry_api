@@ -1,13 +1,23 @@
-# .sqlfluff - Final configuration after real-world testing
+# .sqlfluff - SQLFluff configuration for Recipe Pantry API
+# Note: pg_dump files are excluded via .sqlfluffignore
 [sqlfluff]
 dialect = postgres
 max_line_length = 120
-large_file_skip_byte_limit = 60000
-
-[sqlfluff:rules:capitalisation.keywords]
-# Changed from 'lower' to 'consistent' after seeing pg_dump uses UPPER
-capitalisation_policy = consistent
+large_file_skip_byte_limit = 500000
 
 [sqlfluff:rules]
-# Exclude specific rules for auto-generated template files
-exclude_rules = L011,L012,L014,L016
+# Disable specific rules that don't apply to our PostgreSQL codebase
+# L011: Implicit/explicit aliasing of tables - allow both styles
+# L012: Implicit/explicit aliasing of columns - allow both styles
+# L014: Unquoted identifiers - PostgreSQL standard is unquoted lowercase
+exclude_rules = L011,L012,L014
+
+[sqlfluff:rules:capitalisation.keywords]
+# Use consistent case throughout file (allows both UPPER and lower)
+# PostgreSQL standard uses uppercase keywords (SELECT, FROM, WHERE)
+capitalisation_policy = consistent
+
+[sqlfluff:rules:capitalisation.functions]
+# Allow uppercase function names (CURRENT_TIMESTAMP, COUNT, etc.)
+# PostgreSQL documentation uses uppercase for built-in functions
+extended_capitalisation_policy = consistent

@@ -5,13 +5,16 @@ Provides JWT token creation and verification functions for secure
 authentication.
 """
 
+from datetime import UTC, datetime, timedelta
 import os
-from datetime import datetime, timedelta, timezone
-from typing import Optional
 
 from dotenv import load_dotenv
 from fastapi import HTTPException, status
-from jose import JWTError, jwt
+from jose import (  # type: ignore  # noqa: PGH003
+    ExpiredSignatureError,
+    JWTError,
+    jwt,
+)
 
 load_dotenv()
 
@@ -32,7 +35,7 @@ def create_access_token(data: dict) -> str:
     to_encode = data.copy()
 
     # Add expiration time (using timezone-aware datetime)
-    expire = datetime.now(timezone.utc) + timedelta(days=EXPIRE_DAYS)
+    expire = datetime.now(UTC) + timedelta(days=EXPIRE_DAYS)
     to_encode.update({"exp": expire})
 
     # Create token
@@ -40,25 +43,14 @@ def create_access_token(data: dict) -> str:
     return encoded_jwt
 
 
-def verify_token(token: str) -> Optional[dict]:
-    """
-    Verifies and decodes a JWT token.
-    """
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return payload
-    except JWTError:
-        return None
-
-
-def decode_token(token: str) -> dict:
+def decode_token_or_fail(token: str) -> dict:
     """
     Decode a JWT token with detailed error handling.
     """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except jwt.ExpiredSignatureError as e:
+    except ExpiredSignatureError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token has expired",

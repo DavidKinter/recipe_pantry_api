@@ -12,7 +12,6 @@ from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
-# Week 1: User schemas only
 class UserBase(BaseModel):
     """
     Base user fields shared by other user schemas.
@@ -30,6 +29,12 @@ class UserCreate(UserBase):
     """
 
     password: str = Field(..., min_length=6)
+
+
+class AdminUserCreate(UserCreate):
+    """Schema for creating admin users - includes admin secret."""
+
+    admin_secret: str = Field(..., min_length=1)
 
 
 class UserUpdate(BaseModel):
@@ -50,7 +55,7 @@ class User(UserBase):  # pylint: disable=too-few-public-methods
     hashes to ensure security.
     """
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True)  # Enables ORM instead dict
 
     id: int
     role: str = Field(default="user")
@@ -72,12 +77,11 @@ class LoginRequest(BaseModel):
     password: str
 
 
-# Week 3: Recipe schemas
 class RecipeBase(BaseModel):
     """Base recipe fields shared by create and update."""
 
     title: str = Field(..., min_length=1, max_length=255)
-    ingredients_json: List[str]
+    ingredients_json: List[str] = Field(..., min_length=1)
     instructions: str = Field(..., min_length=1)
     prep_minutes: Optional[int] = Field(None, ge=0)
     is_public: bool = False
@@ -91,7 +95,7 @@ class RecipeUpdate(BaseModel):
     """Schema for updating a recipe. All fields optional."""
 
     title: Optional[str] = Field(None, min_length=1, max_length=255)
-    ingredients_json: Optional[List[str]] = None
+    ingredients_json: Optional[List[str]] = Field(None, min_length=1)
     instructions: Optional[str] = Field(None, min_length=1)
     prep_minutes: Optional[int] = Field(None, ge=0)
     is_public: Optional[bool] = None
@@ -108,26 +112,42 @@ class Recipe(RecipeBase):
     updated_at: datetime
 
 
-# Week 3: Pantry schemas
-class PantryUpdate(BaseModel):
-    """Schema for updating pantry contents."""
-
-    ingredients_json: List[str]
-
-
-class Pantry(BaseModel):
-    """Complete pantry information returned by API."""
+class Ingredient(BaseModel):
+    """Ingredient reference data."""
 
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    user_id: int
-    ingredients_json: List[str]
-    created_at: datetime
-    updated_at: datetime
+    name: str
+    # Note: synonyms excluded from API response (internal use only)
+    # Note: category removed - unique names make it unnecessary
 
 
-# Week 3: Recipe matching response
+class PantryAddItem(BaseModel):
+    """Schema for adding a single ingredient to pantry by ID."""
+
+    ingredient_id: int = Field(..., gt=0)
+
+
+class PantryIngredient(BaseModel):
+    """Schema for a single pantry ingredient."""
+
+    ingredient_id: int
+    ingredient_name: str  # ORM-managed field
+
+
+class PantryResponse(BaseModel):
+    """Response schema for viewing pantry contents as array."""
+
+    ingredients: List[PantryIngredient]  # List of pantry ingredients
+
+
+class PantryUpdate(BaseModel):
+    """Schema for bulk updating pantry contents by ingredient IDs."""
+
+    ingredient_ids: List[int]
+
+
 class RecipeMatch(BaseModel):
     """Recipe with matching information."""
 

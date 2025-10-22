@@ -8,9 +8,15 @@ pytest-asyncio
 
 # Code quality
 mypy>=1.0.0
-ruff>=0.1.0
-bandit[toml]>=1.7.0
+ruff>=0.14.0
+bandit[toml]>=1.8.0
 detect-secrets>=1.4.0
+
+# SQL linting
+sqlfluff>=3.4.0
+
+# Pre-commit framework
+pre-commit>=3.6.0
 
 # Type stubs
 types-requests

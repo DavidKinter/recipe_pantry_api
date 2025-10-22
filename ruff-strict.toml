@@ -1,0 +1,53 @@
+# ===== ULTRA-STRICT CONFIGURATION (OPTIONAL) =====
+# This extends ruff.toml with additional strictness for production codebases
+# To use: ruff check --config ruff-strict.toml .
+
+extend = "ruff.toml"
+
+[lint]
+# Add these rules ON TOP OF the base configuration
+extend-select = [
+    # === Type Annotations (Strict) ===
+    "ANN",    # flake8-annotations - require type hints everywhere
+
+    # === Documentation (Strict) ===
+    "D",      # pydocstyle - require docstrings
+
+    # === Naming Conventions (PEP 8 Strict) ===
+    "N",      # pep8-naming - enforce PEP 8 naming
+
+    # === Pandas (If you use pandas) ===
+    "PD",     # pandas-vet - pandas best practices
+
+    # === Refactoring (More aggressive) ===
+    # Already enabled in base config, but these are the strictest
+]
+
+# Override some ignores from base config
+extend-ignore = [
+    # Documentation exceptions
+    "D100",   # Missing docstring in public module (not always needed)
+    "D104",   # Missing docstring in public package (not always needed)
+    "D107",   # Missing docstring in __init__ (FastAPI models don't need it)
+    "D203",   # 1 blank line required before class docstring (conflicts with D211)
+    "D213",   # Multi-line docstring summary should start at the second line (conflicts with D212)
+
+    # Type annotation exceptions
+    "ANN101", # Missing type annotation for self in method
+    "ANN102", # Missing type annotation for cls in classmethod
+    "ANN003", # missing type annotation for *args
+    "ANN401", # Dynamically typed expressions (Any) are disallowed (FastAPI uses Any)
+]
+
+# ===== NOTES =====
+# This configuration is for teams/projects that want maximum strictness.
+#
+# To gradually adopt:
+# 1. Start with base ruff.toml (already very comprehensive)
+# 2. Add --select=ANN to check type annotations
+# 3. Add --select=D to check docstrings
+# 4. Use this config when ready for production
+#
+# Example workflow:
+#   Development:  ruff check .                      (base config)
+#   CI/CD:        ruff check --config ruff-strict.toml .  (strict config)
