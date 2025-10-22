@@ -4,7 +4,11 @@ MVP - Masterschool Bootcamp
 
 ## Project Status
 
-The API is working locally with all endpoints tested. Need to deploy it to Render next.
+✅ **Deployed and fully operational:** https://recipe-pantry-api.onrender.com
+
+Try it:
+- API Docs: https://recipe-pantry-api.onrender.com/docs
+- Health Check: https://recipe-pantry-api.onrender.com/health
 
 ### What's Working
 - FastAPI with 20+ endpoints
@@ -24,9 +28,9 @@ The API is working locally with all endpoints tested. Need to deploy it to Rende
 - Botanical accuracy prevents recipe errors (sweet potatoes ≠ yams)
 - Denormalized fields for developer experience (debugging-friendly)
 
-### Still need to do
-- Deploy to Render (haven't done this yet)
-- Add the URL here when it's live
+### Deployment
+- Database and API fully deployed through Render's "Postgres" and "Web Service" services
+- Deployed API: https://recipe-pantry-api.onrender.com
 
 ## Quick Start
 
@@ -98,43 +102,45 @@ Admin features:
 - JSONB for flexible ingredient storage and synonym matching
 - B-tree indexes only (bootcamp-appropriate, no advanced GIN/FTS)
 
-Load sample data: `psql $DATABASE_URL -f templates/recipe_pantry_api_dev.sql`
+Load sample data (local dev): `psql $DATABASE_URL -f templates/recipe_pantry_api_production.sql`
 
 ## Endpoints
 
 Auth (`/auth/*`):
-- POST /signup - register user
-- POST /login - get JWT token
-- POST /signup-admin - admin registration (needs ADMIN_SECRET)
+- POST /signup – register user
+- POST /login – get JWT token
+- POST /signup-admin – admin registration (needs ADMIN_SECRET)
 
 User (`/me/*`):
-- GET/PUT/DELETE /me - profile management
-- POST /me/recipes - create recipe (validates all ingredients exist)
-- GET /me/recipes - user's recipes
-- PUT/DELETE /me/recipes/{id} - update/delete recipe
-- GET /me/pantry - user's pantry (array format)
-- POST /me/pantry/ingredients - add ingredient to pantry
-- DELETE /me/pantry/ingredients/{id} - remove ingredient
-- PUT /me/pantry - replace entire pantry
-- GET /me/recipes/available - recipe matching with synonym support
+- GET/PUT/DELETE /me – profile management
+- POST /me/recipes – create recipe (validates all ingredients exist)
+- GET /me/recipes – user's recipes
+- PUT/DELETE /me/recipes/{id} – update/delete recipe
+- GET /me/pantry – user's pantry (array format)
+- POST /me/pantry/ingredients – add ingredient to pantry
+- DELETE /me/pantry/ingredients/{id} – remove ingredient
+- PUT /me/pantry – replace entire pantry
+- GET /me/recipes/available – recipe matching with synonym support
 
 Admin (`/users/*`, `/recipes/*`):
-- GET /users - all users
-- GET/PUT/DELETE /users/{id} - user management
-- GET /recipes - all recipes (with filters)
-- GET/PUT/DELETE /recipes/{id} - recipe management
+- GET /users – all users
+- GET/PUT/DELETE /users/{id} – user management
+- GET /recipes – all recipes (with filters)
+- GET/PUT/DELETE /recipes/{id} – recipe management
 
 System:
-- GET / - welcome message
-- GET /health - health check
-- GET /ingredients - reference list of all 2080 ingredients (fallback for validation errors)
+- GET / – welcome message
+- GET /health – health check
+- GET /ingredients – reference list of all 2080 ingredients (fallback for validation errors)
 
 ## Testing
 
-Run full test suite:
+Run full test suite (against local development):
 1. Import `tests/postman_test_collection.json` in Postman
 2. Run collection (creates/deletes test data automatically)
-3. Clean admin user: `psql $DATABASE_URL -f tests/postman_cleanup_admin.sql`
+3. Clean admin user (local only): `psql $DATABASE_URL -f tests/postman_cleanup_admin.sql`
+
+⚠️ **Never run cleanup scripts against production database!**
 
 156 assertions across 127 requests covering all endpoints, edge cases, auth flows.
 
@@ -193,45 +199,35 @@ POST /me/recipes with {"ingredients_json": ["eggs", "weird-spice-xyz"]}
 
 ## Requirements Checklist
 
-- [x] FastAPI framework - full implementation with 20+ endpoints
-- [x] Project documented - comprehensive README
-- [x] Database schema - 5 normalized tables with relationships
-- [x] Local server - localhost:8000 with auto-reload
-- [x] PostgreSQL - recipe_pantry_api_dev database
-- [x] GitHub repo - with .gitignore
-- [x] .ENV file - all secrets configured
-- [x] Server-DB connection - SQLAlchemy ORM with models
-- [x] CRUD operations - users, recipes, pantry all covered
-- [x] JWT auth - bcrypt passwords, 30-day tokens
-- [x] /me endpoint - complete user management
-- [x] Postman tests - 156 assertions across 127 requests with cleanup
-- [x] Password encryption - bcrypt hashing
-- [x] Unique emails - enforced in DB and code
-- [x] API testing - 156 assertions across 127 requests
-- [x] Swagger docs - auto-generated
-- [x] POC ready - fully functional
+- [x] FastAPI framework – full implementation with 20+ endpoints
+- [x] Project documented – comprehensive README
+- [x] Database schema – 5 normalized tables with relationships
+- [x] Local server – localhost:8000 with auto-reload
+- [x] PostgreSQL – recipe_pantry_api_dev database
+- [x] GitHub repo – with .gitignore
+- [x] .ENV file – all secrets configured
+- [x] Server-DB connection – SQLAlchemy ORM with models
+- [x] CRUD operations – users, recipes, pantry all covered
+- [x] JWT auth – bcrypt passwords, 30-day tokens
+- [x] /me endpoint – complete user management
+- [x] Postman tests – 156 assertions across 127 requests with cleanup
+- [x] Password encryption – bcrypt hashing
+- [x] Unique emails – enforced in DB and code
+- [x] API testing – 156 assertions across 127 requests
+- [x] Swagger docs – auto-generated
+- [x] POC ready – fully functional
 
-## How to Deploy (for Render)
+## How to Deploy
 
-Haven't deployed yet but here's what I need to do:
-
-1. Create database on Render first
+1. Create database on Render first through "Postgres" service
 2. Connect this GitHub repo to Render
-3. Copy all the environment variables from .env
-4. Test if it works with /health endpoint
+3. Sign up for "Web Service" on Render and start configuring API
+4. Copy all the environment variables from .env
+5. Test with /health endpoint: `curl https://recipe-pantry-api.onrender.com/health`
 
 Environment variables needed:
-- DATABASE_URL (from the Render database)
+- DATABASE_URL (from the Render "Postgres" database)
 - JWT_SECRET_KEY and SECRET_KEY (need to generate new ones)
+- JWT_ALGORITHM and JWT_EXPIRATION_DAYS
 - ADMIN_SECRET (for creating admin users)
-- CORS_ORIGINS (just keeping the default)
-
-## Testing
-
-Postman tests all pass on localhost. Tested:
-- User signup/login
-- Creating and updating recipes
-- Adding ingredients to pantry
-- Recipe matching (finds recipes based on what's in your pantry)
-- Admin endpoints
-- Deleting users deletes their recipes too
+- CORS_ORIGINS (set to `*` for portfolio/demo projects, or specific domains for production)
