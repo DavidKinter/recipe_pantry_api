@@ -2,8 +2,6 @@
 Shared dependencies for all routers.
 """
 
-from typing import Optional
-
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
@@ -43,19 +41,6 @@ def get_current_user(
             detail="User not found",
         )
     return user
-
-
-def get_current_user_optional(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
-    db: Session = Depends(get_db),
-) -> Optional[models.User]:
-    """Get current user if authenticated, None otherwise."""
-    if not credentials:
-        return None
-    try:
-        return get_current_user(credentials, db)
-    except HTTPException:
-        return None
 
 
 def require_admin(
