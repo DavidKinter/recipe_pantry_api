@@ -102,7 +102,7 @@ Admin features:
 - JSONB for flexible ingredient storage and synonym matching
 - B-tree indexes only (bootcamp-appropriate, no advanced GIN/FTS)
 
-Load sample data (local dev): `psql $DATABASE_URL -f templates/recipe_pantry_api_production.sql`
+Load sample data (local dev): `psql $DATABASE_URL -f templates/recipe_pantry_api_dev.sql`
 
 ## Endpoints
 

@@ -138,7 +138,6 @@ def login(credentials: schemas.LoginRequest, db: Session = Depends(get_db)):
     "/signup-admin",
     response_model=schemas.User,
     status_code=201,
-    include_in_schema=False,  # Hides visibility in Swagger
 )
 def signup_admin(
     admin_data: schemas.AdminUserCreate,

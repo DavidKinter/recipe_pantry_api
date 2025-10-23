@@ -2,7 +2,7 @@
     "info": {
         "_postman_id": "recipe-pantry-production-v030",
         "name": "Recipe Pantry API - PRODUCTION READY v0.1.0 (156 Assertions)",
-        "description": "\ud83c\udfaf PRODUCTION-READY test suite:\n\n\u2705 System Health: 4\n\u2705 User Auth: 13\n\u2705 User Profile: 6\n\u2705 Recipe Management: 10\n\u2705 Ingredients: 4\n\u2705 Pantry: 16\n\u2705 Recipe Matching: 7\n\u2705 Admin Ops: 6\n\u2705 Error Handling: 11\n\u2705 Concurrency: 11 (improved IntegrityError handling)\n\u2705 CASCADE Verification: 10\n\u2705 Security: 9\n\u2705 Boundary Tests: 16\n\u2705 422 Validation: 8\n\u2705 Edge Cases: 6\n\u2705 Enhanced Cleanup: 23 (now cleans race_test, boundary users)\n\n\ud83d\udcca TOTAL: 156 Assertions (127 requests)\n\ud83c\udfaf Production Readiness: 100% (all tests passing)",
+        "description": "\ud83c\udfaf PRODUCTION-READY test suite:\n\n\u2705 System Health: 4\n\u2705 User Auth: 13\n\u2705 User Profile: 6\n\u2705 Recipe Management: 10\n\u2705 Ingredients: 4\n\u2705 Pantry: 16\n\u2705 Recipe Matching: 7\n\u2705 Admin Ops: 6\n\u2705 Error Handling: 11\n\u2705 Concurrency: 11 (improved IntegrityError handling)\n\u2705 CASCADE Verification: 10\n\u2705 Security: 9 (handles WAF and validation differences)\n\u2705 Boundary Tests: 16\n\u2705 422 Validation: 8\n\u2705 Edge Cases: 6\n\u2705 Enhanced Cleanup: 23 (now cleans race_test, boundary users)\n\n\ud83d\udcca TOTAL: 156 Assertions (127 requests)\n\ud83c\udfaf Production Readiness: 100% (environment-aware)",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
         "version": "0.1.0"
     },
@@ -1061,7 +1061,8 @@
                                     "pm.test('Ingredients sorted alphabetically', function() {",
                                     "    const response = pm.response.json();",
                                     "    const names = response.map(ing => ing.name);",
-                                    "    const sorted = [...names].sort();",
+                                    "    // Use locale-aware sorting to match database collation (en_US.UTF8 on production)",
+                                    "    const sorted = [...names].sort((a, b) => a.localeCompare(b));",
                                     "    pm.expect(names).to.deep.equal(sorted);",
                                     "});",
                                     "",
@@ -3077,9 +3078,15 @@
                             "script": {
                                 "exec": [
                                     "pm.test('SQL injection prevented in email field', function() {",
-                                    "    // Should fail validation (not SQL execute)",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
-                                    "    console.log('\u2705 SQL injection blocked - email validation works');",
+                                    "    // Local: Should fail validation (400/422)",
+                                    "    // Production: WAF blocks request (403)",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([400, 422, 403]);",
+                                    "    ",
+                                    "    if (pm.response.code === 403) {",
+                                    "        console.log('\u2705 SQL injection blocked by WAF (production)');",
+                                    "    } else {",
+                                    "        console.log('\u2705 SQL injection blocked - email validation works (local)');",
+                                    "    }",
                                     "});"
                                 ],
                                 "type": "text/javascript"
@@ -3118,14 +3125,20 @@
                             "script": {
                                 "exec": [
                                     "pm.test('SQL injection prevented in recipe title', function() {",
-                                    "    // SQLAlchemy parameterization prevents SQL injection",
-                                    "    // Title stored as-is (safe)",
-                                    "    pm.expect(pm.response.code).to.equal(201);",
+                                    "    // Local: SQLAlchemy parameterization prevents SQL injection (201)",
+                                    "    // Production: WAF blocks request (403)",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([201, 403]);",
                                     "    ",
-                                    "    const response = pm.response.json();",
-                                    "    pm.expect(response.title).to.equal(\"'; DROP TABLE recipes; --\");",
-                                    "    pm.collectionVariables.set('securityTestRecipeId', response.id);",
-                                    "    console.log('\u2705 SQL injection prevented - parameterized queries work');",
+                                    "    if (pm.response.code === 201) {",
+                                    "        // Local: Verify title stored safely via parameterized queries",
+                                    "        const response = pm.response.json();",
+                                    "        pm.expect(response.title).to.equal(\"'; DROP TABLE recipes; --\");",
+                                    "        pm.collectionVariables.set('securityTestRecipeId', response.id);",
+                                    "        console.log('\u2705 SQL injection prevented - parameterized queries work (local)');",
+                                    "    } else {",
+                                    "        // Production: WAF blocked the request",
+                                    "        console.log('\u2705 SQL injection blocked by WAF (production)');",
+                                    "    }",
                                     "});"
                                 ],
                                 "type": "text/javascript"
@@ -3478,6 +3491,19 @@
                 {
                     "name": "Cleanup Security Test Recipes",
                     "event": [
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "exec": [
+                                    "// Skip cleanup if recipe wasn't created (WAF blocked on production)",
+                                    "if (!pm.collectionVariables.get('securityTestRecipeId')) {",
+                                    "    console.log('\u26a0\ufe0f  Skipping cleanup - security test recipe was not created (WAF blocked)');",
+                                    "    pm.request.headers.add({key: 'X-Skip-Request', value: 'true'});",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        },
                         {
                             "listen": "test",
                             "script": {

@@ -1,6 +1,6 @@
 # Ignore pg_dump generated SQL files
 # These contain COPY ... FROM stdin data that sqlfluff cannot parse
-templates/recipe_pantry_api_production.sql
+templates/recipe_pantry_api_dev.sql
 templates/*.sql
 
 # Ignore database backup files and migrations
