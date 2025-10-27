@@ -51,7 +51,9 @@ def get_table_data(
 
         # Get column information
         columns_info = inspector.get_columns(table_name)
-        column_names = [col["name"] for col in columns_info]
+        column_names = []
+        for col in columns_info:
+            column_names.append(col["name"])
 
         # Get all rows - Parameterization to avoid SQL injection
         metadata = MetaData()

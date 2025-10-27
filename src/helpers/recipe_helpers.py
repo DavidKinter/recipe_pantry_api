@@ -84,7 +84,10 @@ def update_recipes_ingredients_json(
         .all()
     )
 
-    ingredient_names = [ri.ingredient_name for ri in recipe_ingredients]
+    ingredient_names = []
+    for ri in recipe_ingredients:
+        ingredient_names.append(ri.ingredient_name)
+
     recipe.ingredients_json = sorted(ingredient_names)
     flag_modified(recipe, "ingredients_json")
 

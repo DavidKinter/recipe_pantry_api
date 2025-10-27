@@ -192,7 +192,9 @@ def get_available_recipes_based_on_pantry(
     )
 
     # Build list of pantry ingredient names
-    pantry_names = [entry.ingredient_name for entry in pantry_entries]
+    pantry_names = []
+    for entry in pantry_entries:
+        pantry_names.append(entry.ingredient_name)
 
     # Return top N best matches only
     return schemas.RecipeMatchResponse(
