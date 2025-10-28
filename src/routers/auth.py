@@ -145,7 +145,6 @@ def signup_admin(
 ):
     """
     Create an admin user - requires secret key in request body.
-    Hidden from public API documentation for security.
     """
     # Get secret from environment
     expected_secret = os.getenv("ADMIN_SECRET")
