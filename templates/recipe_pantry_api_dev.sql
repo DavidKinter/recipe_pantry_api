@@ -48,7 +48,7 @@ CREATE TABLE public.ingredients (
 );
 
 
-ALTER TABLE public.ingredients OWNER TO "David";
+ALTER TABLE public.ingredients OWNER TO recipe_user;
 
 --
 -- Name: TABLE ingredients; Type: COMMENT; Schema: public; Owner: David
@@ -70,7 +70,7 @@ CREATE SEQUENCE public.ingredients_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.ingredients_id_seq OWNER TO "David";
+ALTER SEQUENCE public.ingredients_id_seq OWNER TO recipe_user;
 
 --
 -- Name: ingredients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: David
@@ -92,7 +92,7 @@ CREATE TABLE public.recipe_ingredients (
 );
 
 
-ALTER TABLE public.recipe_ingredients OWNER TO "David";
+ALTER TABLE public.recipe_ingredients OWNER TO recipe_user;
 
 --
 -- Name: recipe_ingredients_id_seq; Type: SEQUENCE; Schema: public; Owner: David
@@ -107,7 +107,7 @@ CREATE SEQUENCE public.recipe_ingredients_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.recipe_ingredients_id_seq OWNER TO "David";
+ALTER SEQUENCE public.recipe_ingredients_id_seq OWNER TO recipe_user;
 
 --
 -- Name: recipe_ingredients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: David
@@ -128,7 +128,7 @@ CREATE SEQUENCE public.recipes_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.recipes_id_seq OWNER TO "David";
+ALTER SEQUENCE public.recipes_id_seq OWNER TO recipe_user;
 
 --
 -- Name: recipes; Type: TABLE; Schema: public; Owner: David
@@ -138,7 +138,7 @@ CREATE TABLE public.recipes (
     id integer DEFAULT nextval('public.recipes_id_seq'::regclass) NOT NULL,
     user_id integer NOT NULL,
     title character varying(255) NOT NULL,
-    ingredients_json jsonb DEFAULT '[]'::jsonb NOT NULL,
+    ingredients_json jsonb NOT NULL CHECK (jsonb_array_length(ingredients_json) > 0),
     instructions text NOT NULL,
     prep_minutes integer,
     is_public boolean DEFAULT false NOT NULL,
@@ -147,7 +147,7 @@ CREATE TABLE public.recipes (
 );
 
 
-ALTER TABLE public.recipes OWNER TO "David";
+ALTER TABLE public.recipes OWNER TO recipe_user;
 
 --
 -- Name: user_pantry_id_seq; Type: SEQUENCE; Schema: public; Owner: David
@@ -161,7 +161,7 @@ CREATE SEQUENCE public.user_pantry_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.user_pantry_id_seq OWNER TO "David";
+ALTER SEQUENCE public.user_pantry_id_seq OWNER TO recipe_user;
 
 --
 -- Name: user_pantry; Type: TABLE; Schema: public; Owner: David
@@ -176,7 +176,7 @@ CREATE TABLE public.user_pantry (
 );
 
 
-ALTER TABLE public.user_pantry OWNER TO "David";
+ALTER TABLE public.user_pantry OWNER TO recipe_user;
 
 --
 -- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: David
@@ -190,7 +190,7 @@ CREATE SEQUENCE public.users_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.users_id_seq OWNER TO "David";
+ALTER SEQUENCE public.users_id_seq OWNER TO recipe_user;
 
 --
 -- Name: users; Type: TABLE; Schema: public; Owner: David
@@ -208,7 +208,7 @@ CREATE TABLE public.users (
 );
 
 
-ALTER TABLE public.users OWNER TO "David";
+ALTER TABLE public.users OWNER TO recipe_user;
 
 --
 -- Name: ingredients id; Type: DEFAULT; Schema: public; Owner: David

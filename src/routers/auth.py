@@ -149,7 +149,10 @@ def signup_admin(
     # Get secret from environment
     expected_secret = os.getenv("ADMIN_SECRET")
     if not expected_secret:
-        raise ValueError("ADMIN_SECRET must be set in environment")
+        raise HTTPException(
+            status_code=500,
+            detail="Server configuration error",
+        )
 
     if admin_data.admin_secret != expected_secret:
         raise HTTPException(

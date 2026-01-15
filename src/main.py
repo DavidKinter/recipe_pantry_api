@@ -17,7 +17,26 @@ from src import models
 from src.database import engine, get_db
 from src.routers import auth, database, pantry, recipes, users
 
-# Create tables
+
+def validate_required_config():
+    """
+    Checks that all required environment variables exist. Defensive programming
+    to avoid unexpected errors from missing variables.
+    """
+    required_vars = ["DATABASE_URL", "JWT_SECRET_KEY", "ADMIN_SECRET"]
+
+    missing_vars = []
+    for var in required_vars:
+        if not os.getenv(var):
+            missing_vars.append(var)
+
+    if missing_vars:
+        raise ValueError(f"Missing environment variables: {missing_vars}")
+
+
+# Startup tasks run at module level because FastAPI doesn't use main() or __main__,
+# and @app.on_event("startup") was deprecated in FastAPI version 0.104.0
+validate_required_config()
 models.Base.metadata.create_all(bind=engine)
 
 # Initialize FastAPI app
@@ -30,7 +49,10 @@ app = FastAPI(
             "name": "Auth",
             "description": "Authentication endpoints - Login and signup",
         },
-        {"name": "User Profile", "description": "Manage your own profile"},
+        {
+            "name": "User Profile",
+            "description": "Manage your own profile",
+        },
         {
             "name": "User - Recipes",
             "description": "Recipe management - Create, view, and manage your own recipes",

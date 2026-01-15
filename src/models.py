@@ -122,7 +122,7 @@ class Recipe(Base):
     )
     title = Column(String(255), nullable=False)
     # 'ingredients_json' is ORM-managed UX summary field
-    ingredients_json = Column(JSONB, nullable=False, server_default="[]")
+    ingredients_json = Column(JSONB, nullable=False)
     instructions = Column(Text, nullable=False)
     prep_minutes = Column(Integer, nullable=True)
     is_public = Column(Boolean, nullable=False, default=False)
@@ -156,6 +156,10 @@ class Recipe(Base):
             user_id,
             title,
             name="unique_recipe_title_per_user",
+        ),
+        CheckConstraint(
+            "jsonb_array_length(ingredients_json) > 0",
+            name="recipes_ingredients_json_check",
         ),
     )
 

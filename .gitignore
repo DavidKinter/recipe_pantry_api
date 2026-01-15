@@ -63,3 +63,6 @@ newman-results.json
 *_passwords.txt
 *_credentials.json
 *.secrets
+
+# Database backups
+database-backup/

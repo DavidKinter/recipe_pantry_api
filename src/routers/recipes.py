@@ -158,6 +158,10 @@ def get_available_recipes_based_on_pantry(
     for recipe in recipes:
         recipe_ingredients = set(recipe.ingredients_json)
 
+        # Skip recipes with no ingredients (prevents divide-by-zero)
+        if not recipe_ingredients:
+            continue
+
         # Calculate match details
         available_ingredients = user_has_ingredients.intersection(
             recipe_ingredients
