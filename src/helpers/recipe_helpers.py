@@ -147,11 +147,11 @@ def create_recipe_in_database(
             f"Use GET /ingredients to see all {db.query(models.Ingredient).count()} valid options.",
         )
 
-    # Create recipe
+    # Creates recipe with validated ingredients (CHECK constraint requires non-empty)
     db_recipe = models.Recipe(
         user_id=user_id,
         title=recipe_data.title,
-        ingredients_json=[],
+        ingredients_json=valid_ingredients,
         instructions=recipe_data.instructions,
         prep_minutes=recipe_data.prep_minutes,
         is_public=recipe_data.is_public,
