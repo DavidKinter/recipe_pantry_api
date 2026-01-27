@@ -1,0 +1,68 @@
+# Local development only – Render ignores this file
+# Sets API + PostgreSQL containers up for dev environment
+
+services:
+  # FastAPI application container
+  api:
+    build:
+      context: .  # Builds from Dockerfile in current dir
+      target: dev  # Use dev stage (includes pytest, tests/)
+    # Uses pre-built image from: `docker build --target dev -t recipe-pantry-api:dev .`
+    # Without `image:`, compose rebuilds from Dockerfile instead of using pre-built image
+    image: recipe-pantry-api:dev
+    container_name: recipe-pantry-api
+    ports:
+      - "8000:8000"  # Creates tunnel between host port 8000 and container port 8000
+    environment:
+      # 'db' in URLs = service name defined below (Docker DNS, not official syntax)
+      - DATABASE_URL=postgresql://recipe_user:recipe_pass@db:5432/recipe_pantry_api_dev
+      # Test database (for running pytest inside container)
+      - TEST_DATABASE_URL=postgresql://recipe_user:recipe_pass@db:5432/recipe_pantry_api_test
+      # Loads secrets from .env
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - JWT_EXPIRATION_DAYS=${JWT_EXPIRATION_DAYS}
+      - SECRET_KEY=${SECRET_KEY}
+      - ADMIN_SECRET=${ADMIN_SECRET}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - CORS_ORIGINS=*
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      # Mounts src/ and test/ dirs from host into container, enabling hot reload
+      - ./src:/app/src
+      - ./tests:/app/tests
+    # Overrides Dockerfile's production-only default command
+    # Avoids "restart: unless-stopped" used in production
+    # --> want to see if container crashes and requires debugging
+    command: [ "uv", "run", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
+
+  # PostgreSQL database container
+  db:
+    image: postgres:17  # Full image (not alpine) for en_US.UTF-8 collation (Render's default)
+    container_name: recipe-pantry-db
+    environment:
+      # Note: POSTGRES_DB omitted - init.sql creates database with en_US.UTF-8 collation
+      - POSTGRES_USER=recipe_user
+      - POSTGRES_PASSWORD=recipe_pass
+    # Defines how Docker determines database is up-and-running
+    # api service waits via depends_on
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U recipe_user" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      # Creates named volume on host; survives automatic container removal by Docker
+      - postgres_data:/var/lib/postgresql/data
+      # Initializes database with schema template on first run
+      - ./templates/recipe_pantry_api_dev.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      # Development-only tunnel for psql- (or other) tool–access from host
+      - "5432:5432"
+
+# Volume declarations (required for "docker compose" to run with named volumes referenced above)
+volumes:
+  postgres_data:
+    driver: local

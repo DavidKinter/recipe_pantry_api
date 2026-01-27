@@ -9,7 +9,18 @@ CREATE DATABASE recipe_pantry_api_dev
 COMMENT ON DATABASE recipe_pantry_api_dev IS
   'Recipe Pantry API - Bootcamp MVP (en_US.UTF-8 collation)';
 
--- Connect to the new database
+-- Create test database (empty - pytest fixtures create tables per-test)
+CREATE DATABASE recipe_pantry_api_test
+    WITH
+    ENCODING = 'UTF8'
+    LC_COLLATE = 'en_US.UTF-8'
+    LC_CTYPE = 'en_US.UTF-8'
+    TEMPLATE = template0;
+
+COMMENT ON DATABASE recipe_pantry_api_test IS
+  'Recipe Pantry API - Test database for pytest';
+
+-- Connect to the dev database (test DB stays empty for pytest)
 \c recipe_pantry_api_dev
 
 --
@@ -3706,7 +3717,7 @@ COPY public.user_pantry (id, user_id, created_at, ingredient_id, ingredient_name
 --
 
 COPY public.users (id, email, username, role, password_hash, created_at, updated_at) FROM stdin;
-1	admin@recipe-pantry.com	admin	admin	$2b$12$Hx4iZ86GEEGFRZFKz3GxB.XTDm0rromf1xTgvHuqjPW1SZBrTWZiC	2025-09-29 01:37:31.567894+02	2025-09-29 01:37:31.567894+02
+1	admin@recipe-pantry.com	admin	admin	$2b$12$LIQE55o6rVTyp.1XFiZlquHMEBfNlEhToy.nZH2JbSQSt9By4AYGu	2025-09-29 01:37:31.567894+02	2025-09-29 01:37:31.567894+02
 10	admin-two@recipe-pantry.com	admin-two	admin	$2b$12$yS7mjJH742S/PsHU4XlzSu/JYEfuLOYIELuqQeJy7lk.E2IX5.YGy	2025-09-29 02:00:17.539719+02	2025-09-29 02:00:17.539719+02
 2	manos@masterschool.com	manos	user	$2b$12$SH/6G35Wi6dNUscfdaf6uOKPdh5oaO7mcVVcZOALx47H6ePnZ1Cta	2025-09-29 01:37:31.567894+02	2025-09-29 01:37:31.567894+02
 15	alice@demo.com	alice	user	$2b$12$HRdmLbpRT8lx8X.IZ3Kly.trmgmWvYmsXqGkMi6FkrwYBcjgrlL4C	2025-09-30 14:43:04.376866+02	2025-09-30 14:43:04.376866+02

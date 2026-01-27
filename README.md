@@ -1,6 +1,6 @@
 # Recipe Pantry API
 
-MVP - Masterschool Bootcamp
+V2 - Masterschool Bootcamp
 
 ## Project Status
 
@@ -19,6 +19,9 @@ Try it:
 - Recipe matching algorithm with synonym support
 - 156 test assertions across 127 requests with automated cleanup
 - Admin role system
+- Docker setup so you can run everything with one command
+- pytest tests (in addition to Postman)
+- AI dish suggestions using Claude
 
 ### Database Highlights
 - Normalized 5-table structure with junction tables
@@ -34,25 +37,33 @@ Try it:
 
 ## Quick Start
 
-Requirements: Python 3.12+, PostgreSQL 17 (using Homebrew on Mac)
+### With Docker (easiest)
 
 ```bash
-# Clone and install
-pip install -r requirements.txt
+# Copy environment file
+cp .env.example .env
+
+# Start everything (API + database)
+docker compose up
+```
+
+That's it. API docs at http://localhost:8000/docs
+
+### Without Docker
+
+Requirements: Python 3.12+, PostgreSQL 17, uv
+
+```bash
+# Install dependencies
+uv sync
 
 # Create database
 psql -U your_user -c "CREATE DATABASE recipe_pantry_api_dev;"
 
-# Configure .env (copy from .env.example)
-DATABASE_URL=postgresql://your_user:your_password@localhost/recipe_pantry_api_dev
-SECRET_KEY=your-secret-key-here
-JWT_SECRET_KEY=your-jwt-secret-key-here
-JWT_ALGORITHM=HS256
-JWT_EXPIRATION_DAYS=30
-ADMIN_SECRET=change_this_to_something_secure
+# Configure .env (copy from .env.example and fill in your values)
 
 # Run server
-uvicorn src.main:app --reload
+uv run uvicorn src.main:app --reload
 ```
 
 API docs: http://localhost:8000/docs
@@ -122,6 +133,9 @@ User (`/me/*`):
 - PUT /me/pantry – replace entire pantry
 - GET /me/recipes/available – recipe matching with synonym support
 
+AI (`/ai/*`):
+- POST /ai/dish-suggestions – suggests dishes based on what's in your pantry
+
 Admin (`/users/*`, `/recipes/*`):
 - GET /users – all users
 - GET/PUT/DELETE /users/{id} – user management
@@ -135,14 +149,30 @@ System:
 
 ## Testing
 
-Run full test suite (against local development):
+### pytest
+
+```bash
+# Run all tests
+uv run pytest
+
+# Run with coverage
+uv run pytest --cov=src
+
+# Run one file
+uv run pytest tests/test_auth.py -v
+```
+
+Tests use a separate database (`recipe_pantry_api_test`) so they don't mess with your dev data.
+
+### Postman
+
 1. Import `tests/postman_test_collection.json` in Postman
 2. Run collection (creates/deletes test data automatically)
 3. Clean admin user (local only): `psql $DATABASE_URL -f tests/postman_cleanup_admin.sql`
 
 ⚠️ **Never run cleanup scripts against production database!**
 
-156 assertions across 127 requests covering all endpoints, edge cases, auth flows.
+156 Postman assertions across 127 requests.
 
 ## Code Quality
 
@@ -217,6 +247,11 @@ POST /me/recipes with {"ingredients_json": ["eggs", "weird-spice-xyz"]}
 - [x] Swagger docs – auto-generated
 - [x] POC ready – fully functional
 
+**V2 additions:**
+- [x] Docker – can run with `docker compose up`
+- [x] pytest – tests in `tests/` folder
+- [x] GenAI – dish suggestions with Claude
+
 ## How to Deploy
 
 1. Create database on Render first through "Postgres" service
@@ -231,3 +266,4 @@ Environment variables needed:
 - JWT_ALGORITHM and JWT_EXPIRATION_DAYS
 - ADMIN_SECRET (for creating admin users)
 - CORS_ORIGINS (set to `*` for portfolio/demo projects, or specific domains for production)
+- ANTHROPIC_API_KEY (only needed if you want the AI dish suggestions to work)

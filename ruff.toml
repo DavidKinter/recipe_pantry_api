@@ -189,6 +189,11 @@ ignore = [
     "B904",     # Exception chaining - inherited from main.py refactoring
 ]
 
+# AI services - intentional broad exception handling for graceful degradation
+"src/services/*.py" = [
+    "BLE001",   # Blind except ok - AI services need graceful fallback on any error
+]
+
 # Test files
 "src/tests/*.py" = [
     "S101",     # Assert usage - required for testing
@@ -199,6 +204,8 @@ ignore = [
     "S101",     # Assert usage
     "PLR2004",  # Magic values
     "ARG001",   # Unused fixtures
+    "E402",     # Module import not at top - conftest needs load_dotenv() before src imports
+    "PT003",    # scope='function' is implied - kept explicit for educational clarity
 ]
 
 # Scripts and utilities

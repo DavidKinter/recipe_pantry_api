@@ -1,0 +1,157 @@
+# ===== Recipe Pantry API - Project Configuration =====
+# PEP 621 compliant project metadata for uv package manager
+
+[project]
+name = "recipe-pantry-api"
+version = "0.2.0"
+description = "FastAPI application for recipe management with ingredient matching"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.12"
+authors = [
+    { name = "David Kinter" }
+]
+keywords = ["fastapi", "recipes", "api", "postgresql"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: FastAPI",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+]
+
+# === Core Dependencies (pinned to match production requirements.txt) ===
+dependencies = [
+    "fastapi==0.115.6",
+    "uvicorn[standard]==0.34.0",
+    "sqlalchemy==2.0.43",
+    "psycopg2-binary==2.9.10",
+    "pydantic[email]==2.10.3",
+    "python-jose[cryptography]==3.4.0",
+    "passlib[bcrypt]==1.7.4",
+    "bcrypt==4.0.1",
+    "python-dotenv==1.0.1",
+    "requests==2.32.5",
+    "anthropic==0.76.0",
+]
+
+# === Optional Dependency Groups ===
+[project.optional-dependencies]
+dev = [
+    # Testing
+    "pytest>=8.0.0",
+    "pytest-cov",
+    "pytest-asyncio",
+    # Code quality
+    "mypy>=1.0.0",
+    "ruff>=0.14.0",
+    "bandit[toml]>=1.8.0",
+    "detect-secrets>=1.4.0",
+    # SQL linting
+    "sqlfluff>=3.4.0",
+    # Pre-commit framework
+    "pre-commit>=3.6.0",
+    # Type stubs
+    "types-requests",
+    "sqlalchemy[mypy]",
+]
+
+[project.urls]
+"Homepage" = "https://recipe-pantry-api.onrender.com"
+"Repository" = "https://github.com/yourusername/recipe-pantry-api"
+"Documentation" = "https://recipe-pantry-api.onrender.com/docs"
+
+# === Build System ===
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# === Hatch Build Configuration ===
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+# === uv Configuration ===
+[tool.uv]
+# Use system Python if available, otherwise download
+python-preference = "managed"
+
+# === pytest Configuration ===
+[tool.pytest.ini_options]
+testpaths = ["tests", "src/tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+addopts = [
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests requiring database connection",
+]
+
+# === Coverage Configuration ===
+[tool.coverage.run]
+source = ["src"]
+branch = true
+omit = [
+    "src/tests/*",
+    "tests/*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+]
+fail_under = 80
+show_missing = true
+
+# === mypy Configuration ===
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_ignores = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+plugins = ["sqlalchemy.ext.mypy.plugin"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+
+# === bandit Configuration ===
+[tool.bandit]
+exclude_dirs = ["tests", "src/tests", ".venv"]
+skips = ["B101"]  # Assert usage OK in tests
+
+# === sqlfluff Configuration ===
+[tool.sqlfluff.core]
+dialect = "postgres"
+templater = "raw"
+max_line_length = 120
+
+[tool.sqlfluff.rules.capitalisation.keywords]
+capitalisation_policy = "upper"
+
+# ===== RUFF CONFIGURATION =====
+# Note: Comprehensive ruff config kept in separate ruff.toml
+# This allows easier maintenance of the 250+ line configuration
+# To use pyproject.toml instead, copy contents from ruff.toml here
+
+# ===== USAGE =====
+# Install dependencies:     uv sync
+# Install with dev deps:    uv sync --extra dev
+# Add a dependency:         uv add <package>
+# Add a dev dependency:     uv add --optional dev <package>
+# Update dependencies:      uv lock --upgrade
+# Run the app:              uv run uvicorn src.main:app --reload
+# Run tests:                uv run pytest
+# Format code:              uv run ruff format .
+# Lint code:                uv run ruff check --fix .

@@ -11,6 +11,8 @@ from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
+# ========================== MVP SCHEMAS ==========================
+
 
 class UserBase(BaseModel):
     """
@@ -171,3 +173,30 @@ class RecipeMatchResponse(BaseModel):
     recipes: List[RecipeMatch]
     threshold: float
     user_pantry: List[str]
+
+
+# =================== AI DISH SUGGESTION SCHEMAS ===================
+
+
+class DishTier(BaseModel):
+    """Single dish suggestion with missing ingredients."""
+
+    dish: str
+    missing: List[str]
+
+
+class DishSuggestions(BaseModel):
+    """All three tiers of dish suggestions."""
+
+    buy_one: DishTier
+    buy_two: DishTier
+    buy_three: DishTier
+
+
+class DishSuggestionResponse(BaseModel):
+    """Response schema for AI dish suggestions endpoint."""
+
+    pantry_count: int
+    suggestions: Optional[DishSuggestions] = None
+    error: Optional[str] = None
+    fallback: Optional[str] = None

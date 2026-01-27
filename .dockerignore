@@ -1,0 +1,54 @@
+# .dockerignore - Exclude from Docker build context
+# Makes builds faster (less to send) and safer (secrets excluded)
+
+# Git
+.git/
+.gitignore
+
+# Environment and secrets
+.env
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+*.egg-info/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing artifacts (but not tests/ - needed for pytest in container)
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Postman (not needed in container - using pytest instead)
+postman/
+
+# Documentation (not needed in runtime image)
+**/*.md
+!/README.md
+docs/
+
+# Database
+database-backup/
+*.sql
+
+# Docker (no need to include these in the image)
+Dockerfile
+compose.yml
+docker-compose.yml
+.dockerignore
+
+# Docs
+aux/
+aux_docs/
+
+# OS files
+.DS_Store
+Thumbs.db

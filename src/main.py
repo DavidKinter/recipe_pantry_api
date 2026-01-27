@@ -9,13 +9,15 @@ import os
 
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from src import models
 from src.database import engine, get_db
-from src.routers import auth, database, pantry, recipes, users
+from src.routers import ai, auth, database, pantry, recipes, users
 
 
 def validate_required_config():
@@ -43,7 +45,7 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title="Recipe Pantry API",
     description="Complete recipe management system with pantry tracking",
-    version="0.1.0",
+    version="0.2.0",
     openapi_tags=[
         {
             "name": "Auth",
@@ -104,6 +106,13 @@ app.include_router(users.router)
 app.include_router(recipes.router)
 app.include_router(pantry.router)
 app.include_router(database.router)
+app.include_router(ai.router)
+
+
+@app.get("/docs-overview", include_in_schema=False)
+def docs_overview():
+    """Custom API overview dashboard showing all read-only endpoints."""
+    return FileResponse("static/docs_overview.html")
 
 
 # Root endpoint
@@ -115,7 +124,7 @@ def root():
     """
     return {
         "message": "Recipe Pantry API",
-        "version": "0.1.0",
+        "version": "0.2.0",
         "docs": "/docs",
         "health": "/health",
     }
@@ -133,3 +142,7 @@ def health_check(db: Session = Depends(get_db)):
         return {"status": "healthy", "database": "connected"}
     except (SQLAlchemyError, ConnectionError):
         return {"status": "unhealthy", "database": "disconnected"}
+
+
+# Mount static files last to avoid shadowing API routes
+app.mount("/static", StaticFiles(directory="static"), name="static")

@@ -157,6 +157,7 @@ class Recipe(Base):
             title,
             name="unique_recipe_title_per_user",
         ),
+        # A valid recipe must have at least one ingredient
         CheckConstraint(
             "jsonb_array_length(ingredients_json) > 0",
             name="recipes_ingredients_json_check",
